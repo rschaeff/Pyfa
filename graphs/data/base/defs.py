@@ -134,3 +134,27 @@ class InputCheckbox:
             self.label == other.label,
             self.defaultValue == other.defaultValue,
             self.conditions == other.conditions))
+
+
+class InputChoice:
+
+    def __init__(self, handle, label, options, defaultValue, conditions=()):
+        self.handle = handle
+        self.label = label
+        # options: sequence of (value, displayLabel) pairs
+        self.options = tuple(options)
+        self.defaultValue = defaultValue
+        self.conditions = tuple(conditions)
+
+    def __hash__(self):
+        return hash((self.handle, self.label, self.options, self.defaultValue, self.conditions))
+
+    def __eq__(self, other):
+        if not isinstance(other, InputChoice):
+            return False
+        return all((
+            self.handle == other.handle,
+            self.label == other.label,
+            self.options == other.options,
+            self.defaultValue == other.defaultValue,
+            self.conditions == other.conditions))

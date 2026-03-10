@@ -86,12 +86,25 @@ class FitGraph(metaclass=ABCMeta):
     def checkboxesMap(self):
         return OrderedDict((ec.handle, ec) for ec in self.checkboxes)
 
+    choices = ()
+
+    @property
+    def choicesMap(self):
+        return OrderedDict((c.handle, c) for c in self.choices)
+
     hasTargets = False
     srcVectorDef = None
     tgtVectorDef = None
     srcExtraCols = ()
     tgtExtraCols = ()
     usesHpEffectivity = False
+
+    def renderLine(self, axes, xs, ys, color, lineStyle, src, tgt):
+        """Render a single source x target line. Override for custom rendering."""
+        if len(xs) == 1 and len(ys) == 1:
+            axes.plot(xs, ys, color=color, linestyle=lineStyle, marker='.')
+        else:
+            axes.plot(xs, ys, color=color, linestyle=lineStyle)
 
     def getPlotPoints(self, mainInput, miscInputs, xSpec, ySpec, src, tgt=None):
         cacheKey = self._makeCacheKey(src=src, tgt=tgt)

@@ -162,11 +162,7 @@ class GraphCanvasPanel(wx.Panel):
                 plotData[(source, target)] = (xs, ys)
                 allXs.update(xs)
                 allYs.update(ys)
-                # If we have single data point, show marker - otherwise line won't be shown
-                if len(xs) == 1 and len(ys) == 1:
-                    self.subplot.plot(xs, ys, color=color, linestyle=lineStyle, marker='.')
-                else:
-                    self.subplot.plot(xs, ys, color=color, linestyle=lineStyle)
+                view.renderLine(self.subplot, xs, ys, color, lineStyle, src=source, tgt=target)
                 # Fill data for legend
                 if target is None:
                     legendData.append((color, lineStyle, source.shortName))

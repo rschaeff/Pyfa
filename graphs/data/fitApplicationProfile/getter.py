@@ -328,7 +328,7 @@ class XDistanceMixin(SmoothPointGetter):
     _baseResolution = 100
 
     def _getCommonData(self, miscParams, src, tgt):
-        qualityTier = getattr(self.graph, '_ammoQuality', 'all')
+        qualityTier = miscParams.get('ammoQuality', 'all')
         ignoreResists = GraphSettings.getInstance().get('ammoOptimalIgnoreResists')
         applyProjected = GraphSettings.getInstance().get('ammoOptimalApplyProjected')
 

@@ -34,6 +34,7 @@ from .vector import VectorPicker
 InputData = namedtuple('InputData', ('handle', 'unit', 'value'))
 InputBox = namedtuple('InputBox', ('handle', 'unit', 'textBox', 'icon', 'label'))
 CheckBox = namedtuple('CheckBox', ('handle', 'checkBox'))
+ChoiceBox = namedtuple('ChoiceBox', ('handle', 'choice', 'label'))
 _t = wx.GetTranslation
 
 
@@ -45,6 +46,7 @@ class GraphControlPanel(wx.Panel):
         self._mainInputBox = None
         self._miscInputBoxes = []
         self._inputCheckboxes = []
+        self._inputChoices = []
         self._storedRanges = {}
         self._storedConsts = {}
 
@@ -182,10 +184,14 @@ class GraphControlPanel(wx.Panel):
                     child.Destroy()
         for checkbox in self._inputCheckboxes:
             checkbox.checkBox.Destroy()
+        for choiceBox in self._inputChoices:
+            choiceBox.choice.Destroy()
+            choiceBox.label.Destroy()
         self.inputsSizer.Clear()
         self._mainInputBox = None
         self._miscInputBoxes.clear()
         self._inputCheckboxes.clear()
+        self._inputChoices.clear()
         # Update vectors
         view = self.graphFrame.getView()
         handledHandles = set()
@@ -204,6 +210,11 @@ class GraphControlPanel(wx.Panel):
             if checkboxDef.handle in handledHandles:
                 continue
             self.__addInputCheckbox(checkboxDef, handledHandles)
+        # Add choice dropdowns
+        for choiceDef in view.choices:
+            if choiceDef.handle in handledHandles:
+                continue
+            self.__addInputChoice(choiceDef, handledHandles)
 
     def __handleVector(self, vectorDef, vector, handledHandles, mainInputHandle):
         handledHandles.add(vectorDef.lengthHandle)
@@ -266,6 +277,26 @@ class GraphControlPanel(wx.Panel):
         # Store info about added checkbox
         checkbox = CheckBox(handle=checkboxDef.handle, checkBox=fieldCheckbox)
         self._inputCheckboxes.append(checkbox)
+
+    def __addInputChoice(self, choiceDef, handledHandles):
+        if not self.__checkInputConditions(choiceDef):
+            return
+        handledHandles.add(choiceDef.handle)
+        fieldSizer = wx.BoxSizer(wx.HORIZONTAL)
+        fieldLabel = wx.StaticText(self, wx.ID_ANY, choiceDef.label)
+        fieldSizer.Add(fieldLabel, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
+        fieldChoice = wx.Choice(self, wx.ID_ANY)
+        storedValue = self._storedConsts.get((choiceDef.handle, None), choiceDef.defaultValue)
+        selectedIdx = 0
+        for i, (value, displayLabel) in enumerate(choiceDef.options):
+            fieldChoice.Append(displayLabel, value)
+            if value == storedValue:
+                selectedIdx = i
+        fieldChoice.SetSelection(selectedIdx)
+        fieldChoice.Bind(wx.EVT_CHOICE, self.OnNonMainInputChanged)
+        fieldSizer.Add(fieldChoice, 1, wx.EXPAND | wx.ALL, 0)
+        self.inputsSizer.Add(fieldSizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        self._inputChoices.append(ChoiceBox(handle=choiceDef.handle, choice=fieldChoice, label=fieldLabel))
 
     def __checkInputConditions(self, inputDef):
         if not inputDef.conditions:
@@ -390,6 +421,11 @@ class GraphControlPanel(wx.Panel):
         # Checkboxes
         for checkbox in self._inputCheckboxes:
             addMiscData(handle=checkbox.handle, unit=None, value=checkbox.checkBox.GetValue())
+        # Choices
+        for choiceBox in self._inputChoices:
+            sel = choiceBox.choice.GetSelection()
+            if sel != wx.NOT_FOUND:
+                addMiscData(handle=choiceBox.handle, unit=None, value=choiceBox.choice.GetClientData(sel))
 
         return main, misc
 
