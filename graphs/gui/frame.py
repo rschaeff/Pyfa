@@ -38,7 +38,7 @@ pyfalog = Logger(__name__)
 _t = wx.GetTranslation
 
 
-REDRAW_DELAY = 200
+REDRAW_DELAY = 500
 
 
 class GraphFrame(AuxiliaryFrame):
